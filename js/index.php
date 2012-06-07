@@ -52,6 +52,7 @@ $files = array(
 	'jquery.mobile.links.js',
 	'jquery.mobile.fixedToolbar.js',
 	'jquery.mobile.popup.js',
+	'jquery.mobile.slidingstack.js',
 	'jquery.mobile.zoom.js',
 	'jquery.mobile.zoom.iosorientationfix.js',
 	'jquery.mobile.init.js'

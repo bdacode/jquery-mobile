@@ -1,0 +1,17 @@
+.ui-slidingstack-block {
+	position: absolute;
+	width: 100%;
+	border: none !important;
+}
+
+.ui-slidingstack-block * {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-user-select: none;
+}
+
+.ui-slidingstack {
+	position: relative;
+	top: 0;
+	width: 100%;
+}
