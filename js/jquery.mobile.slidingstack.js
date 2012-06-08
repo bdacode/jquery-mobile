@@ -80,7 +80,7 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			}
 		};
 
- 		// this relies on the "positions" data added to the layer when
+ 		// this relies on the positions data added to the layer when
 		// initial sizing and positioning was completed (see _configureLayers())
 		left = layer.jqmData( "slidingstack-positions" )[ endPosition ];
 
@@ -94,11 +94,11 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 	// note that the indices start at 1 for the first child
 	//
 	// endPosition = left, center, right: the desired final position of
-	// the layer, in relation to the screen
+	// the layers, in relation to the page
 	slideLayers: function( layerFinder, endPosition ) {
 		endPosition = endPosition || "center";
 
-		var layers;
+		var layers = [];
 		var selector;
 
 		if ( typeof layerFinder === "number" ) {
@@ -111,7 +111,9 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			selector = "> :nth-child(" + layerFinder.join( "), > :nth-child(" ) + ")";
 		}
 
-		layers = this.element.find( selector );
+		if ( selector ) {
+			layers = this.element.find( selector );
+		}
 
 		for ( var i = 0; i < layers.length; i++ ) {
 			this._animateLayer( $( layers[i] ), endPosition );
