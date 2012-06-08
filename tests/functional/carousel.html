@@ -3,9 +3,9 @@
 
 <head>
 	<meta charset="utf-8" />
-	<title>jQuery Mobile: Sliding Stack</title>
+	<title>jQuery Mobile: Carousel</title>
 	<link rel="stylesheet"  href="../../css/themes/default/jquery.mobile.css" />
-<link rel="stylesheet"  href="../../css/structure/jquery.mobile.slidingstack.css" />
+<link rel="stylesheet"  href="../../css/structure/jquery.mobile.carousel.css" />
 	<script src="../../js/jquery.js"></script>
 	<script src="../../js/"></script>
 </head>
@@ -14,24 +14,24 @@
 
 <div data-role="page" id="baseline">
 	<div data-role="header">
-		<h1>Sliding Stack</h1>
+		<h1>Carousel</h1>
 	</div>
 
 	<div data-role="content">
 	  <ul data-role="listview">
-	    <li id="in-listview" data-role="slidingstack">
+	    <li id="in-listview" data-role="carousel">
 	      <div>
-          <h1>I'm on top</h1>
+          <h1>I'm first</h1>
           <p>I am best</p>
         </div>
 
         <div>
-          <h1>I'm underneath</h1>
+          <h1>I'm in the middle</h1>
           <p>I think I am best</p>
         </div>
 
         <div>
-          I'm right at the bottom
+          I'm last
         </div>
 	    </li>
 	    <li>hello world</li>
@@ -42,11 +42,11 @@
 <script>
 $( document ).bind( 'pagecreate', function() {
   $( '#in-listview' ).on( 'swiperight', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayers', 1, 'right' );
+    $( '#in-listview' ).carousel( 'slide', 'right' );
   });
 
   $( '#in-listview' ).on( 'swipeleft', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], 'left' );
+    $( '#in-listview' ).carousel( 'slide', 'left' );
   });
 });
 </script>

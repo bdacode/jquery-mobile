@@ -1,17 +1,16 @@
-.ui-slidingstack-block {
+.ui-carousel-block {
 	position: absolute;
 	width: 100%;
 	border: none !important;
 }
 
-.ui-slidingstack-block * {
+.ui-carousel-block * {
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-user-select: none;
 }
 
-.ui-slidingstack {
+.ui-carousel {
 	position: relative;
 	top: 0;
-	width: 100%;
 }
