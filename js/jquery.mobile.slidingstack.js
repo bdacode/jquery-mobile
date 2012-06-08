@@ -23,21 +23,6 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		this.refresh( true );
 	},
 
-	_animateLayer: function( layer, left ) {
-		var animationOptions = {
-			easing: 'linear',
-			duration: 'medium',
-			queue: true,
-			complete: function () {
-				layer.trigger( 'animationComplete' );
-			}
-		};
-
-		layer.stop();
-		layer.clearQueue();
-		layer.animate( { left: left }, animationOptions );
-	},
-
 	// set initial size of layers and enclosing element,
 	// and store positioning data for each layer
 	_configureLayers: function() {
@@ -45,6 +30,7 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		var layers = this.element.children();
 		var layer;
 		var layerWidth;
+		var layerLeft;
 
 		for ( var i = 0; i < layers.length; i++ ) {
 			layer = $( layers[i] );
@@ -55,12 +41,16 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			// store the initial offsets of the child, so when
 			// transitioning the layer, we can reposition it correctly
 			layerWidth = layer.width();
+			layerLeft = layer.position()[ "left" ];
 
-			layer.data( "positions", {
-				"center": layer.position()[ "left" ],
-				"left": -layerWidth,
+			layer.jqmData( "slidingstack-positions", {
+				"center": layerLeft,
+				"left": -layerWidth - layerLeft,
 				"right": layerWidth
 			} );
+
+			// record the position of the layer
+			layer.jqmData( "slidingstack-currentPosition", "center" );
 		}
 
 		// set the enclosing element and all the children to the
@@ -69,26 +59,63 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		layers.height( minHeight );
 	},
 
-	// position = left, center, right: the desired final position of
+	_animateLayer: function( layer, endPosition ) {
+		var left;
+		var currentPosition = layer.jqmData( "slidingstack-currentPosition" );
+
+		if ( currentPosition === endPosition ) {
+			return;
+		}
+
+		// we need to do the animation
+		var animationOptions = {
+			easing: "linear",
+
+			// TODO make this configurable
+			duration: "medium",
+
+			complete: function () {
+				layer.jqmData( "slidingstack-currentPosition", endPosition );
+				layer.trigger( "animationComplete" );
+			}
+		};
+
+ 		// this relies on the "positions" data added to the layer when
+		// initial sizing and positioning was completed (see _configureLayers())
+		left = layer.jqmData( "slidingstack-positions" )[ endPosition ];
+
+		layer.stop();
+		layer.clearQueue();
+		layer.animate( { left: left }, animationOptions );
+	},
+
+	// layerFinder = integer index of the layer to move,
+	// array of integer indices, or a selector to find the layer;
+	// note that the indices start at 1 for the first child
+	//
+	// endPosition = left, center, right: the desired final position of
 	// the layer, in relation to the screen
-	slideLayer: function( indexOrSelector, endPosition ) {
+	slideLayers: function( layerFinder, endPosition ) {
 		endPosition = endPosition || "center";
 
-		var layer;
-		var endLeft;
+		var layers;
+		var selector;
 
-		if ( typeof indexOrSelector === "number" ) {
-			layer = this.element.children()[ indexOrSelector ];
+		if ( typeof layerFinder === "number" ) {
+			selector = "> :nth-child(" + layerFinder + ")";
 		}
-		else {
-			layer = this.element.find( indexOrSelector );
+		else if ( typeof layerFinder === "string" ) {
+			selector = layerFinder;
+		}
+		else if ( layerFinder.length > 0 ) {
+			selector = "> :nth-child(" + layerFinder.join( "), > :nth-child(" ) + ")";
 		}
 
-		// this relies on the "positions" data added to the layer when
-		// initial sizing and positioning was completed (see _configureLayers())
-		endLeft = $( layer ).data( "positions" )[ endPosition ];
+		layers = this.element.find( selector );
 
-		this._animateLayer( $( layer ), endLeft );
+		for ( var i = 0; i < layers.length; i++ ) {
+			this._animateLayer( $( layers[i] ), endPosition );
+		}
 	},
 
 	refresh: function( create ) {
@@ -125,7 +152,7 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			z = z - 1;
 		}
 
-		// resize the height of the slidingstack after the page is drawn
+		// resize the height of the slidingstack layers after the page is drawn
 		if ( this.element.closest( ".ui-page" ).is( ":visible" ) ) {
 			this._configureLayers();
 		}
