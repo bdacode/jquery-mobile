@@ -16,11 +16,41 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 
 	options: {
 		theme: null,
-		initSelector: ":jqmData(role='" + widgetname + "')"
+		initSelector: ":jqmData(role='" + widgetname + "')",
+		carousel: true
 	},
 
 	_create: function() {
 		this.refresh( true );
+
+		// in carousel mode, the layers are given a starting position
+		// where the first layer is centered (position = 0) and the
+		// succeeding layers are to its right
+		if ( this.options.carousel ) {
+			var self = this;
+
+			setTimeout( function () {
+				var startingPositions = self.getPositions();
+				var layers = [];
+
+				for ( var i = 0; i < startingPositions.length; i++ ) {
+					// the layer number is just its index + 1
+					layers.push(i + 1);
+
+					// the first layer is at position 0; subsequent layers
+					// are at positions 1, 2, 3 etc.; the last layer is at
+					// position -1, so it can slide in if the carousel is slid right
+					if ( i === startingPositions.length - 1 ) {
+						startingPositions[i] = -1;
+					}
+					else {
+						startingPositions[i] = startingPositions[i] + i;
+					}
+				}
+
+				self.moveLayers( layers, startingPositions );
+			}, 0 );
+		}
 	},
 
 	// set initial size of layers and enclosing element,
@@ -40,7 +70,7 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 
 			// store the initial offsets of the child, so when
 			// transitioning the layer, we can reposition it correctly
-			layer.jqmData( "slidingstack-positioning", {
+			layer.jqmData( widgetname + "-positioning", {
 				"center": layer.position()[ "left" ],
 				"originalWidth": layer.width(),
 				"currentPosition": 0
@@ -53,17 +83,38 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		layers.height( minHeight );
 	},
 
-  // positions go from -m (left) to 0 (centered) to n (right), where
-  // m and n are integers representing offsets from the center, where
-  // the units are equal to the widths of the layers
-	_animateLayer: function( layer, endPosition ) {
-		var positioning = layer.jqmData( "slidingstack-positioning" )
+	_getOffset: function( positioning, endPosition ) {
+		endPosition = ( typeof endPosition === "number" ? endPosition : 0 );
+
 		var currentPosition = positioning.currentPosition;
+
+		// this is going to be used to set a CSS "left" value
 		var left;
 
 		if ( currentPosition === endPosition ) {
 			return;
 		}
+
+ 		// this relies on the positions data added to the layer when
+		// initial sizing and positioning was completed (see _configureLayers())
+		left = ( positioning.originalWidth * endPosition );
+
+		if ( endPosition === 0 ) {
+			left += positioning.center;
+		}
+		else if ( endPosition < 0 ) {
+			left -= positioning.center;
+		}
+
+		return left;
+	},
+
+	// positions go from -m (left) to 0 (centered) to n (right), where
+	// m and n are integers representing offsets from the center, where
+	// the units are equal to the widths of the layers
+	_animateLayer: function( layer, endPosition ) {
+		var positioning = layer.jqmData( widgetname + "-positioning" );
+		var left = this._getOffset( positioning, endPosition );
 
 		// position is different, so we need to do the animation
 		var animationOptions = {
@@ -78,17 +129,22 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			}
 		};
 
- 		// this relies on the positions data added to the layer when
-		// initial sizing and positioning was completed (see _configureLayers())
-		left = positioning.center + ( positioning.originalWidth * endPosition );
-
 		layer.stop();
 		layer.clearQueue();
 		layer.animate( { left: left }, animationOptions );
 	},
 
+	_moveLayer: function( layer, position ) {
+		var positioning = layer.jqmData( widgetname + "-positioning" );
+		var left = this._getOffset( positioning, position );
+		layer.css( "left", left );
+		positioning.currentPosition = position;
+	},
+
 	_findLayers: function( layerFinder ) {
-	  var layers = [];
+		layerFinder = layerFinder || ".ui-" + widgetname + "-block";
+
+		var layers = [];
 		var selector;
 
 		if ( typeof layerFinder === "number" ) {
@@ -106,7 +162,21 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		}
 
 		return layers;
-  },
+	},
+
+	// returns the positions of all the layers
+	getPositions: function() {
+		var layers = this._findLayers();
+
+		var positions = [];
+		var layer;
+		for ( var i = 0; i < layers.length; i++ ) {
+			layer = $( layers[i] );
+			positions.push( layer.jqmData( widgetname + "-positioning" ).currentPosition );
+		}
+
+		return positions;
+	},
 
 	// layerFinder = integer index of the layer to move,
 	// array of integer indices, or a selector to find the layer;
@@ -114,14 +184,79 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 	//
 	// endPosition = left, center, right: the desired final position of
 	// the layers, in relation to the page
-	slideLayers: function( layerFinder, endPosition ) {
-		endPosition = endPosition || 0;
+	slideLayers: function( layerFinder, position ) {
+		position = position || 0;
 
 		var layers = this._findLayers( layerFinder );
 
 		for ( var i = 0; i < layers.length; i++ ) {
-			this._animateLayer( $( layers[i] ), endPosition );
+			this._animateLayer( $( layers[i] ), position );
 		}
+	},
+
+	// positions is either a single integer or an array of integers;
+	// the layers are mapped onto the positions array to determine
+	// their new position, or all assigned the same position; where
+	// positions is an array but is shorter than the number of layers
+	// returned by layerFinder, the last position in the array is used
+	// to specify the position of any layers not assigned a position
+	moveLayers: function( layerFinder, positions ) {
+		if ( typeof positions === "number" ) {
+			positions = [ positions ];
+		}
+		else if (!positions) {
+			positions = [ 0 ];
+		}
+
+		var layers = this._findLayers( layerFinder );
+		var position;
+
+		for ( var i = 0; i < layers.length; i++ ) {
+			if ( typeof positions[i] !== "undefined" ) {
+				position = positions[i];
+			}
+
+			this._moveLayer( $( layers[i] ), position );
+		}
+	},
+
+	// the slideAll*() methods allow the slidingstack to be treated
+	// as an infinite carousel
+	slideAll: function( direction ) {
+		var positions = this.getPositions();
+
+		// -2, as this is the last index and we keep one layer
+		// at position -1, ready to slide in
+		var largestPosition = positions.length - 2;
+
+		var newPosition;
+		var action;
+
+		for ( var i = 0; i < positions.length; i++ ) {
+			newPosition = positions[i] + direction;
+
+			if ( newPosition < -1 ) {
+				newPosition = largestPosition;
+				action = 'moveLayers';
+			}
+			else if ( newPosition > largestPosition ) {
+				newPosition = -1;
+				action = 'moveLayers';
+			}
+			else {
+				action = 'slideLayers';
+			}
+
+			this[action]( i + 1, newPosition );
+		}
+	},
+
+	slideRight: function () {
+		this.slideAll( 1 );
+	},
+
+	slideLeft: function () {
+		this.slideAll( -1 );
 	},
 
 	refresh: function( create ) {

@@ -2,10 +2,11 @@
 <html>
 
 <head>
-	<meta charset="utf-8" />
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>jQuery Mobile: Sliding Stack</title>
-	<link rel="stylesheet"  href="../../css/themes/default/jquery.mobile.css" />
-<link rel="stylesheet"  href="../../css/structure/jquery.mobile.slidingstack.css" />
+	<link rel="stylesheet"  href="../../css/themes/default/jquery.mobile.css">
+	<link rel="stylesheet"  href="../../css/structure/jquery.mobile.slidingstack.css">
 	<script src="../../js/jquery.js"></script>
 	<script src="../../js/"></script>
 </head>
@@ -20,18 +21,22 @@
 	<div data-role="content">
 	  <ul data-role="listview">
 	    <li id="in-listview" data-role="slidingstack">
+        <div>
+          <h1>I start on the left</h1>
+          <p>I think I am best</p>
+        </div>
+
 	      <div>
-          <h1>I'm on top</h1>
+          <h1>I start in the middle</h1>
           <p>I am best</p>
         </div>
 
         <div>
-          <h1>I'm underneath</h1>
-          <p>I think I am best</p>
+          I start on the right
         </div>
 
         <div>
-          I'm right at the bottom
+          I start on the very far right
         </div>
 	    </li>
 	    <li>hello world</li>
@@ -41,21 +46,14 @@
 
 <script>
 $( document ).bind( 'pagecreate', function() {
-  var slidRight = false;
+  var listview = $( '#in-listview' );
 
-  $( '#in-listview' ).on( 'swiperight', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayers', 1, 1 );
-    slidRight = true;
+  listview.on( 'swiperight', function ( ) {
+    listview.slidingstack ( 'slideRight' );
   });
 
-  $( '#in-listview' ).on( 'swipeleft', function ( ) {
-    if (slidRight) {
-      $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], 0 );
-      slidRight = false;
-    }
-    else {
-      $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], -1 );
-    }
+  listview.on( 'swipeleft', function ( ) {
+    listview.slidingstack ( 'slideLeft' );
   });
 });
 </script>
