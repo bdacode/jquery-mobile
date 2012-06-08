@@ -48,13 +48,17 @@
 $( document ).bind( 'pagecreate', function() {
   var listview = $( '#in-listview' );
 
-  listview.on( 'swiperight', function ( ) {
-    listview.slidingstack ( 'slideRight' );
+  listview.on( 'swiperight', function () {
+    listview.slidingstack( 'slideRight' );
   });
 
-  listview.on( 'swipeleft', function ( ) {
-    listview.slidingstack ( 'slideLeft' );
+  listview.on( 'swipeleft', function () {
+    listview.slidingstack( 'slideLeft' );
   });
+
+  setTimeout(function () {
+    listview.slidingstack( 'refresh' );
+  }, 5000);
 });
 </script>
 

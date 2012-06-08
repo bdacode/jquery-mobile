@@ -306,13 +306,15 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		}
 
 		// resize the height of the slidingstack layers after the page is drawn
-		if ( this.element.closest( ".ui-page" ).is( ":visible" ) ) {
-			this._configureLayers();
-		}
-		else {
-			this.element.closest( ".ui-page" ).bind( "pageshow", function() {
-				self._configureLayers();
-			} );
+		if ( create ) {
+			if ( this.element.closest( ".ui-page" ).is( ":visible" ) ) {
+				this._configureLayers();
+			}
+			else {
+				this.element.closest( ".ui-page" ).bind( "pageshow", function() {
+					self._configureLayers();
+				} );
+			}
 		}
 	}
 
