@@ -41,12 +41,21 @@
 
 <script>
 $( document ).bind( 'pagecreate', function() {
+  var slidRight = false;
+
   $( '#in-listview' ).on( 'swiperight', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayers', 1, 'right' );
+    $( '#in-listview' ).slidingstack( 'slideLayers', 1, 1 );
+    slidRight = true;
   });
 
   $( '#in-listview' ).on( 'swipeleft', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], 'left' );
+    if (slidRight) {
+      $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], 0 );
+      slidRight = false;
+    }
+    else {
+      $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], -1 );
+    }
   });
 });
 </script>

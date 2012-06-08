@@ -40,17 +40,11 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 
 			// store the initial offsets of the child, so when
 			// transitioning the layer, we can reposition it correctly
-			layerWidth = layer.width();
-			layerLeft = layer.position()[ "left" ];
-
-			layer.jqmData( "slidingstack-positions", {
-				"center": layerLeft,
-				"left": -layerWidth - layerLeft,
-				"right": layerWidth
+			layer.jqmData( "slidingstack-positioning", {
+				"center": layer.position()[ "left" ],
+				"originalWidth": layer.width(),
+				"currentPosition": 0
 			} );
-
-			// record the position of the layer
-			layer.jqmData( "slidingstack-currentPosition", "center" );
 		}
 
 		// set the enclosing element and all the children to the
@@ -59,15 +53,19 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		layers.height( minHeight );
 	},
 
+  // positions go from -m (left) to 0 (centered) to n (right), where
+  // m and n are integers representing offsets from the center, where
+  // the units are equal to the widths of the layers
 	_animateLayer: function( layer, endPosition ) {
+		var positioning = layer.jqmData( "slidingstack-positioning" )
+		var currentPosition = positioning.currentPosition;
 		var left;
-		var currentPosition = layer.jqmData( "slidingstack-currentPosition" );
 
 		if ( currentPosition === endPosition ) {
 			return;
 		}
 
-		// we need to do the animation
+		// position is different, so we need to do the animation
 		var animationOptions = {
 			easing: "linear",
 
@@ -75,30 +73,22 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			duration: "medium",
 
 			complete: function () {
-				layer.jqmData( "slidingstack-currentPosition", endPosition );
+				positioning.currentPosition = endPosition;
 				layer.trigger( "animationComplete" );
 			}
 		};
 
  		// this relies on the positions data added to the layer when
 		// initial sizing and positioning was completed (see _configureLayers())
-		left = layer.jqmData( "slidingstack-positions" )[ endPosition ];
+		left = positioning.center + ( positioning.originalWidth * endPosition );
 
 		layer.stop();
 		layer.clearQueue();
 		layer.animate( { left: left }, animationOptions );
 	},
 
-	// layerFinder = integer index of the layer to move,
-	// array of integer indices, or a selector to find the layer;
-	// note that the indices start at 1 for the first child
-	//
-	// endPosition = left, center, right: the desired final position of
-	// the layers, in relation to the page
-	slideLayers: function( layerFinder, endPosition ) {
-		endPosition = endPosition || "center";
-
-		var layers = [];
+	_findLayers: function( layerFinder ) {
+	  var layers = [];
 		var selector;
 
 		if ( typeof layerFinder === "number" ) {
@@ -114,6 +104,20 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		if ( selector ) {
 			layers = this.element.find( selector );
 		}
+
+		return layers;
+  },
+
+	// layerFinder = integer index of the layer to move,
+	// array of integer indices, or a selector to find the layer;
+	// note that the indices start at 1 for the first child
+	//
+	// endPosition = left, center, right: the desired final position of
+	// the layers, in relation to the page
+	slideLayers: function( layerFinder, endPosition ) {
+		endPosition = endPosition || 0;
+
+		var layers = this._findLayers( layerFinder );
 
 		for ( var i = 0; i < layers.length; i++ ) {
 			this._animateLayer( $( layers[i] ), endPosition );
