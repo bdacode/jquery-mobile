@@ -42,11 +42,11 @@
 <script>
 $( document ).bind( 'pagecreate', function() {
   $( '#in-listview' ).on( 'swiperight', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayer', 0, 'right' );
+    $( '#in-listview' ).slidingstack( 'slideLayers', 1, 'right' );
   });
 
   $( '#in-listview' ).on( 'swipeleft', function ( ) {
-    $( '#in-listview' ).slidingstack( 'slideLayer', 0, 'center' );
+    $( '#in-listview' ).slidingstack( 'slideLayers', [1,2], 'left' );
   });
 });
 </script>
