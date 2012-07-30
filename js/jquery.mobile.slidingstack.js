@@ -57,9 +57,9 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		// succeeding layers are to its right
 		if ( this.options.carousel ) {
 			var startingPositions = this.getPositions();
-			var layers = [];
+			layers = [];
 
-			for ( var i = 0; i < startingPositions.length; i++ ) {
+			for ( i = 0; i < startingPositions.length; i++ ) {
 				// the layer number is just its index + 1
 				layers.push(i + 1);
 
@@ -86,7 +86,7 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			return;
 		}
 
- 		// this relies on the positions data added to the layer when
+		// this relies on the positions data added to the layer when
 		// initial sizing and positioning was completed (see _configureLayers())
 		left = ( layer.width() * endPosition );
 
@@ -238,20 +238,20 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 		var newPosition;
 		var action;
 
+		var slideLeftmostLayerToRightmostPosition = function () {
+			self._moveLayers( 1, largestPosition );
+		};
+
 		for ( var i = 0; i < positions.length; i++ ) {
 			var layer = $( layers[i] );
 			var layerIndex = i + 1;
 			newPosition = positions[i] + direction;
 
-
 			// sliding the visible layer out to the left requires a callback
 			// which moves it to the right-hand end when the animation is done
 			if ( newPosition < 0 ) {
 				newPosition = largestPosition;
-
-				this.slideLayers( layerIndex, -1, function ( layerDone ) {
-					self._moveLayer( layerDone, newPosition );
-				} );
+				this.slideLayers( layerIndex, -1, slideLeftmostLayerToRightmostPosition);
 			}
 			else if ( newPosition > largestPosition ) {
 				newPosition = 0;
@@ -262,13 +262,6 @@ $.widget( "mobile." + widgetname, $.mobile.widget, {
 			}
 			else {
 				this.slideLayers( layerIndex, newPosition );
-			}
-
-			if ( newPosition === 0 ) {
-
-			}
-			else {
-
 			}
 		}
 	},
